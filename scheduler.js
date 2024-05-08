@@ -1,6 +1,6 @@
 module.exports = (function () {
 	"use strict";
-	const EventEmitter = require("events");		
+	const EventEmitter = require("node:events");
 	const LongTimeout = require("long-timeout");
 	const priority = {
 		normal: 1,
@@ -22,7 +22,7 @@ module.exports = (function () {
 			this.maxSize = options.maxSize || 5;
 			this.interval = options.timeout || 1250;
 		}
-		
+
 		schedule (message, timestamp = null) {
 			if (timestamp === null && this.queue.length > this.maxSize) {
 				this.emit("skip", message);
@@ -31,12 +31,12 @@ module.exports = (function () {
 
 			let targetTime = timestamp || (Date.now() + 50);
 			let colliding = this.queue.filter(i => Math.abs(i.timestamp - targetTime) < this.interval);
-			
+
 			while (colliding.length !== 0) {
 				targetTime += this.interval;
 				colliding = this.queue.filter(i => Math.abs(i.timestamp - targetTime) < this.interval);
 			}
-		
+
 			const id = Symbol();
 			this.queue.push({
 				id: id,
@@ -51,18 +51,18 @@ module.exports = (function () {
 
 			this.emit("queue", this.queue[this.queue.length - 1]);
 		}
-		
+
 		remove (id) {
 			const index = this.queue.findIndex(i => i.id === id);
 			const removed = this.queue.splice(index, 1);
 
 			this.emit("remove", removed);
-			
+
 			if (this.queue.length === 0) {
 				this.emit("empty");
 			}
 		}
-		
+
 		destroy () {
 			for (const item of this.queue) {
 				if (item.timeout !== null) {
@@ -73,7 +73,7 @@ module.exports = (function () {
 			this.queue = [];
 			this.emit("destroy");
 		}
-	}	
-	
+	}
+
 	return MessageScheduler;
 })();
